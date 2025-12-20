@@ -1,150 +1,261 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBeachTennisGame } from './hooks/useBeachTennisGame';
-import { RotateCcw, Undo2, Trophy, ArrowLeftRight, Zap } from 'lucide-react';
+import { RotateCcw, Undo2, Trophy, ArrowLeftRight, Zap, Settings2, X, ChevronRight, Activity } from 'lucide-react';
 
 const App: React.FC = () => {
   const { gameState, addPoint, undo, resetMatch } = useBeachTennisGame();
   const [p1Name, setP1Name] = useState("DUPLA A");
   const [p2Name, setP2Name] = useState("DUPLA B");
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [showChangeSidesAlert, setShowChangeSidesAlert] = useState(false);
 
   const totalGames = gameState.p1Games + gameState.p2Games;
   const isChangeEnds = totalGames % 2 !== 0 && !gameState.isTieBreak && gameState.p1Score === '0' && gameState.p2Score === '0' && totalGames > 0;
   const isDecidingPoint = gameState.p1Score === '40' && gameState.p2Score === '40' && !gameState.isTieBreak;
 
+  // Efeito para alertar troca de lado de forma mais enfática
+  useEffect(() => {
+    if (isChangeEnds) {
+      setShowChangeSidesAlert(true);
+      const timer = setTimeout(() => setShowChangeSidesAlert(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isChangeEnds]);
+
   return (
-    <div className="h-screen w-full bg-beach-dark flex flex-col font-sans overflow-hidden select-none">
+    <div className="h-screen w-full bg-beach-navy flex flex-col font-sans select-none relative overflow-hidden">
       
-      {/* 1. PLACAR SUPERIOR (Resumo) */}
-      <div className="bg-gray-900 text-white p-4 shadow-2xl border-b border-gray-800">
-        <div className="flex justify-between items-center max-w-2xl mx-auto">
-          {/* Sets */}
-          <div className="text-center">
-            <span className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Sets</span>
-            <div className="text-3xl font-black flex gap-3">
-              <span className="text-beach-yellow">{gameState.p1Sets}</span>
-              <span className="text-gray-700">|</span>
-              <span className="text-beach-orange">{gameState.p2Sets}</span>
-            </div>
+      {/* HEADER COMPACTO - Focado em Status */}
+      <header className="safe-top bg-black/40 backdrop-blur-xl border-b border-white/5 px-5 py-3 flex items-center justify-between z-30">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-beach-yellow rounded-lg flex items-center justify-center shadow-lg shadow-beach-yellow/10">
+            <Trophy size={16} className="text-beach-navy" />
           </div>
-
-          {/* Logo/Status */}
-          <div className="flex flex-col items-center">
-            <div className="bg-beach-yellow/10 px-3 py-1 rounded-full border border-beach-yellow/20 mb-1">
-              <span className="text-beach-yellow text-[10px] font-black tracking-tighter">BEACH PLACAR • CBT</span>
-            </div>
-            {gameState.isTieBreak && (
-              <span className="text-red-500 text-[10px] font-bold animate-pulse">TIE-BREAK</span>
-            )}
-          </div>
-
-          {/* Games */}
-          <div className="text-center">
-            <span className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Games</span>
-            <div className="text-3xl font-black flex gap-3">
-              <span className="text-beach-yellow">{gameState.p1Games}</span>
-              <span className="text-gray-700">|</span>
-              <span className="text-beach-orange">{gameState.p2Games}</span>
+          <div>
+            <h1 className="text-[10px] font-black tracking-widest text-white/50 uppercase">Beach Placar <span className="text-beach-yellow">Pro</span></h1>
+            <div className="flex items-center gap-1">
+              <Activity size={8} className="text-beach-accent" />
+              <span className="text-[9px] font-bold text-beach-accent/80 uppercase">Match in Progress</span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* 2. PLACAR PRINCIPAL (Visualização Rápida) */}
-      <div className="bg-black/40 flex h-32 md:h-48 border-b border-gray-800">
-        <div className="flex-1 flex flex-col items-center justify-center border-r border-gray-800 relative">
+        <div className="flex gap-2">
+          {gameState.setResults.map((res, i) => (
+            <div key={i} className="bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[10px] font-black flex gap-1">
+              <span className="text-beach-yellow">{res.p1}</span>
+              <span className="text-white/20">|</span>
+              <span className="text-beach-orange">{res.p2}</span>
+            </div>
+          ))}
+        </div>
+      </header>
+
+      {/* ÁREAS DE TOQUE PRINCIPAIS (80% DA TELA) */}
+      <main className="flex-1 flex relative">
+        
+        {/* COLUNA ESQUERDA - TIME A */}
+        <div 
+          onClick={() => addPoint('p1')}
+          className={`flex-1 flex flex-col items-center justify-center relative tap-feedback transition-colors duration-300 ${gameState.currentServer === 'p1' ? 'bg-beach-accent/5' : ''}`}
+        >
+          {/* Indicador de Saque Lateral */}
           {gameState.currentServer === 'p1' && !gameState.winner && (
-            <div className="absolute top-2 left-2 w-3 h-3 bg-green-500 rounded-full shadow-[0_0_10px_#22c55e]" />
+            <div className="absolute left-0 top-1/4 bottom-1/4 w-1.5 bg-beach-accent rounded-r-full shadow-[0_0_15px_#22C55E]" />
           )}
-          <input 
-            value={p1Name} 
-            onChange={(e) => setP1Name(e.target.value.toUpperCase())}
-            className="bg-transparent text-center text-xs font-bold text-gray-500 uppercase w-full outline-none mb-1"
-          />
-          <div className="text-7xl md:text-9xl font-black text-beach-yellow">{gameState.p1Score}</div>
-        </div>
-        <div className="flex-1 flex flex-col items-center justify-center relative">
-          {gameState.currentServer === 'p2' && !gameState.winner && (
-            <div className="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full shadow-[0_0_10px_#22c55e]" />
-          )}
-          <input 
-            value={p2Name} 
-            onChange={(e) => setP2Name(e.target.value.toUpperCase())}
-            className="bg-transparent text-center text-xs font-bold text-gray-500 uppercase w-full outline-none mb-1"
-          />
-          <div className="text-7xl md:text-9xl font-black text-beach-orange">{gameState.p2Score}</div>
-        </div>
-      </div>
 
-      {/* 3. ALERTAS DE QUADRA */}
-      <div className="h-12 flex items-center justify-center bg-gray-900/50">
-        {isDecidingPoint && (
-          <div className="flex items-center gap-2 text-red-500 font-black text-sm animate-bounce">
-            <Zap size={16} fill="currentColor" /> PONTO DECISIVO
-          </div>
-        )}
-        {isChangeEnds && (
-          <div className="flex items-center gap-2 text-beach-yellow font-black text-sm animate-pulse">
-            <ArrowLeftRight size={16} /> TROCA DE LADO
-          </div>
-        )}
-      </div>
-
-      {/* 4. ÁREA DE TOQUE GIGANTE */}
-      <div className="flex-1 flex relative">
-        {/* Overlay de Vitória */}
-        {gameState.winner && (
-          <div className="absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-6 text-center backdrop-blur-md">
-            <div className="bg-yellow-500/20 p-8 rounded-full mb-6">
-              <Trophy className="w-24 h-24 text-yellow-500 animate-bounce" />
+          <div className="text-center z-10">
+            <span className="text-[10px] font-black text-beach-yellow/40 uppercase tracking-[0.2em] mb-4 block">Pontos</span>
+            <div className="text-[32vw] font-display font-black leading-none text-beach-yellow score-number drop-shadow-2xl">
+              {gameState.p1Score}
             </div>
-            <h2 className="text-5xl font-black text-white mb-2 italic">VITÓRIA!</h2>
-            <p className="text-2xl text-yellow-500 font-bold mb-10 uppercase tracking-widest">
-              {gameState.winner === 'p1' ? p1Name : p2Name}
-            </p>
+            
+            <div className="mt-8 space-y-2">
+              <div className="inline-block px-4 py-1.5 rounded-full bg-beach-yellow/10 border border-beach-yellow/20 max-w-[40vw] truncate">
+                <span className="text-xs font-black text-beach-yellow uppercase tracking-tight">{p1Name}</span>
+              </div>
+              <div className="flex justify-center gap-3">
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-gray-500 uppercase">Sets</span>
+                  <span className="text-xl font-display font-black text-white">{gameState.p1Sets}</span>
+                </div>
+                <div className="w-px h-6 bg-white/10 self-end" />
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-gray-500 uppercase">Games</span>
+                  <span className="text-xl font-display font-black text-white/60">{gameState.p1Games}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* DIVISOR CENTRAL */}
+        <div className="w-px bg-white/5 relative">
+          {/* Overlay de Ponto Decisivo */}
+          {isDecidingPoint && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+              <div className="bg-red-600 text-white px-3 py-1 rounded-lg font-black text-[9px] whitespace-nowrap shadow-2xl border border-white/20 animate-pulse flex items-center gap-1">
+                <Zap size={10} fill="currentColor" /> NO-AD
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* COLUNA DIREITA - TIME B */}
+        <div 
+          onClick={() => addPoint('p2')}
+          className={`flex-1 flex flex-col items-center justify-center relative tap-feedback transition-colors duration-300 ${gameState.currentServer === 'p2' ? 'bg-beach-accent/5' : ''}`}
+        >
+          {/* Indicador de Saque Lateral */}
+          {gameState.currentServer === 'p2' && !gameState.winner && (
+            <div className="absolute right-0 top-1/4 bottom-1/4 w-1.5 bg-beach-accent rounded-l-full shadow-[0_0_15px_#22C55E]" />
+          )}
+
+          <div className="text-center z-10">
+            <span className="text-[10px] font-black text-beach-orange/40 uppercase tracking-[0.2em] mb-4 block">Pontos</span>
+            <div className="text-[32vw] font-display font-black leading-none text-beach-orange score-number drop-shadow-2xl">
+              {gameState.p2Score}
+            </div>
+
+            <div className="mt-8 space-y-2">
+              <div className="inline-block px-4 py-1.5 rounded-full bg-beach-orange/10 border border-beach-orange/20 max-w-[40vw] truncate">
+                <span className="text-xs font-black text-beach-orange uppercase tracking-tight">{p2Name}</span>
+              </div>
+              <div className="flex justify-center gap-3">
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-gray-500 uppercase">Sets</span>
+                  <span className="text-xl font-display font-black text-white">{gameState.p2Sets}</span>
+                </div>
+                <div className="w-px h-6 bg-white/10 self-end" />
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-gray-500 uppercase">Games</span>
+                  <span className="text-xl font-display font-black text-white/60">{gameState.p2Games}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* BARRA DE CONTROLE INFERIOR (ERGONOMIA TOTAL) */}
+      <footer className="h-28 bg-black/60 backdrop-blur-2xl border-t border-white/5 flex items-center justify-between px-6 pb-6">
+        <div className="flex gap-4">
+          <button 
+            onClick={(e) => { e.stopPropagation(); undo(); }}
+            disabled={gameState.history.length === 0}
+            className="h-14 px-6 bg-white/5 disabled:opacity-10 rounded-2xl border border-white/10 flex items-center gap-3 active:scale-90 transition-all"
+          >
+            <Undo2 size={22} className="text-beach-yellow" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Voltar</span>
+          </button>
+
+          <button 
+            onClick={(e) => { e.stopPropagation(); if(confirm("Zerar partida?")) resetMatch(); }}
+            className="h-14 w-14 bg-red-900/20 rounded-2xl border border-red-500/10 flex items-center justify-center active:scale-90 transition-all"
+          >
+            <RotateCcw size={22} className="text-red-500" />
+          </button>
+        </div>
+
+        <button 
+          onClick={(e) => { e.stopPropagation(); setIsConfigOpen(true); }}
+          className="h-14 w-14 bg-beach-yellow text-beach-navy rounded-2xl flex items-center justify-center shadow-lg shadow-beach-yellow/20 active:scale-90 transition-all"
+        >
+          <Settings2 size={24} />
+        </button>
+      </footer>
+
+      {/* OVERLAY DE TROCA DE LADO */}
+      {showChangeSidesAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-beach-yellow p-8 animate-in fade-in zoom-in duration-300">
+          <div className="text-center">
+            <ArrowLeftRight size={80} className="text-beach-navy mx-auto mb-6 animate-bounce" />
+            <h2 className="text-4xl font-black text-beach-navy leading-none mb-2">TROCA DE LADO</h2>
+            <p className="text-beach-navy/60 font-bold uppercase tracking-widest text-sm">Fim do game ímpar: {totalGames}</p>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIGURAÇÃO - Estilo Bottom Sheet para Mobile */}
+      {isConfigOpen && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-end justify-center animate-in fade-in duration-200">
+          <div className="w-full bg-beach-slate rounded-t-[3rem] border-t border-white/10 p-8 pb-12 animate-in slide-in-from-bottom duration-300">
+            <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8" />
+            
+            <div className="flex justify-between items-center mb-10">
+              <h3 className="text-2xl font-black tracking-tight">Equipes</h3>
+              <button onClick={() => setIsConfigOpen(false)} className="p-3 bg-white/5 rounded-full">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-beach-yellow uppercase tracking-widest">Nome Equipe A</label>
+                <input 
+                  type="text"
+                  value={p1Name}
+                  onChange={(e) => setP1Name(e.target.value.toUpperCase())}
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-xl font-black text-white focus:border-beach-yellow focus:outline-none"
+                  placeholder="EQUIPE A"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-beach-orange uppercase tracking-widest">Nome Equipe B</label>
+                <input 
+                  type="text"
+                  value={p2Name}
+                  onChange={(e) => setP2Name(e.target.value.toUpperCase())}
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-xl font-black text-white focus:border-beach-orange focus:outline-none"
+                  placeholder="EQUIPE B"
+                />
+              </div>
+            </div>
+
             <button 
-              onClick={resetMatch} 
-              className="bg-white text-black px-12 py-5 rounded-2xl font-black text-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+              onClick={() => setIsConfigOpen(false)}
+              className="w-full mt-10 bg-beach-yellow text-beach-navy py-6 rounded-2xl font-black text-lg shadow-xl"
             >
-              NOVA PARTIDA
+              SALVAR E CONTINUAR
             </button>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Botão P1 */}
-        <button 
-          onClick={() => addPoint('p1')}
-          className="flex-1 bg-beach-yellow active:brightness-75 transition-all flex flex-col items-center justify-center gap-4 border-r border-black/20"
-        >
-          <span className="text-black/30 font-black text-xs uppercase tracking-[0.2em]">Toque para pontuar</span>
-          <span className="text-black text-3xl font-black uppercase tracking-tighter px-4 text-center">{p1Name}</span>
-        </button>
+      {/* OVERLAY DE VITÓRIA - IMPACTO TOTAL */}
+      {gameState.winner && (
+        <div className="fixed inset-0 bg-beach-navy z-[200] flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in duration-500">
+          <div className="mb-10 relative">
+            <div className="absolute inset-0 bg-beach-yellow/30 blur-3xl animate-pulse rounded-full" />
+            <Trophy size={100} className="text-beach-yellow relative z-10" />
+          </div>
+          
+          <h2 className="text-xs font-black text-beach-yellow uppercase tracking-[0.4em] mb-2">Match Point Final</h2>
+          <h3 className="text-5xl font-display font-black text-center leading-none mb-10">
+            {gameState.winner === 'p1' ? p1Name : p2Name} <br/> <span className="text-beach-accent">VENCEU!</span>
+          </h3>
 
-        {/* Botão P2 */}
-        <button 
-          onClick={() => addPoint('p2')}
-          className="flex-1 bg-beach-orange active:brightness-75 transition-all flex flex-col items-center justify-center gap-4"
-        >
-          <span className="text-white/30 font-black text-xs uppercase tracking-[0.2em]">Toque para pontuar</span>
-          <span className="text-white text-3xl font-black uppercase tracking-tighter px-4 text-center">{p2Name}</span>
-        </button>
-      </div>
+          <div className="flex gap-4 mb-16">
+            {gameState.setResults.map((r, i) => (
+              <div key={i} className="bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-center">
+                <span className="text-[8px] font-black text-gray-500 block mb-1">SET {i+1}</span>
+                <span className="text-2xl font-display font-black text-beach-yellow">{r.p1}</span>
+                <span className="text-white/20 mx-2">-</span>
+                <span className="text-2xl font-display font-black text-beach-orange">{r.p2}</span>
+              </div>
+            ))}
+          </div>
 
-      {/* 5. CONTROLES DE RODAPÉ */}
-      <div className="bg-black p-4 flex gap-4 border-t border-gray-800">
-        <button 
-          onClick={undo}
-          className="flex-1 bg-gray-800 text-white py-5 rounded-2xl font-black flex items-center justify-center gap-3 active:scale-95 transition-transform"
-        >
-          <Undo2 size={24} /> DESFAZER
-        </button>
-        <button 
-          onClick={() => { if(confirm("Zerar partida?")) resetMatch(); }}
-          className="w-20 bg-red-950/30 text-red-500 rounded-2xl flex items-center justify-center active:scale-95 transition-transform border border-red-500/20"
-        >
-          <RotateCcw size={24} />
-        </button>
-      </div>
+          <button 
+            onClick={resetMatch} 
+            className="w-full max-w-xs bg-white text-beach-navy py-6 rounded-3xl font-black text-xl shadow-2xl active:scale-95 transition-all"
+          >
+            NOVA PARTIDA
+          </button>
+        </div>
+      )}
     </div>
   );
 };

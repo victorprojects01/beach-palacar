@@ -1,12 +1,25 @@
 
 export type PlayerId = 'p1' | 'p2';
 
+/**
+ * PointScore represents the points within a game (0, 15, 30, 40, AD or tiebreak points)
+ * Added to fix errors in components/ScoreCard.tsx
+ */
+export type PointScore = string;
+
+/**
+ * Player interface used by UI components
+ * Added to fix errors in components/ScoreCard.tsx
+ */
 export interface Player {
   id: PlayerId;
   name: string;
 }
 
-export type PointScore = string; // '0', '15', '30', '40' ou números no Tie-break
+export interface SetResult {
+  p1: number;
+  p2: number;
+}
 
 export interface GameState {
   p1Score: PointScore;
@@ -20,17 +33,6 @@ export interface GameState {
   currentServer: PlayerId;
   winner: PlayerId | null;
   isTieBreak: boolean;
-  history: GameState[];
-}
-
-// Added GeminiAction to fix import error in geminiService.ts and AssistantChat.tsx
-export interface GeminiAction {
-  action: 'POINT_P1' | 'POINT_P2' | 'RESET' | 'UNDO' | 'EXPLAIN' | 'UNKNOWN';
-  message: string;
-}
-
-// Added ChatMessage to fix import error in AssistantChat.tsx
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  text: string;
+  setResults: SetResult[]; // Histórico de sets concluídos
+  history: GameState[];    // Para o botão Desfazer
 }
