@@ -1,0 +1,5 @@
+{
+  "name": "Beach Placar CBT",
+  "description": "Marcador profissional de Beach Tennis seguindo as regras oficiais da CBT (No-Ad, Tie-break, Troca de Lados).",
+  "requestFramePermissions": []
+}
