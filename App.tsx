@@ -14,7 +14,6 @@ const App: React.FC = () => {
   const isChangeEnds = totalGames % 2 !== 0 && !gameState.isTieBreak && gameState.p1Score === '0' && gameState.p2Score === '0' && totalGames > 0;
   const isDecidingPoint = gameState.p1Score === '40' && gameState.p2Score === '40' && !gameState.isTieBreak;
 
-  // Efeito para alertar troca de lado de forma mais enfática
   useEffect(() => {
     if (isChangeEnds) {
       setShowChangeSidesAlert(true);
@@ -26,7 +25,7 @@ const App: React.FC = () => {
   return (
     <div className="h-screen w-full bg-beach-navy flex flex-col font-sans select-none relative overflow-hidden">
       
-      {/* HEADER COMPACTO - Focado em Status */}
+      {/* HEADER COMPACTO */}
       <header className="safe-top bg-black/40 backdrop-blur-xl border-b border-white/5 px-5 py-3 flex items-center justify-between z-30">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-beach-yellow rounded-lg flex items-center justify-center shadow-lg shadow-beach-yellow/10">
@@ -52,15 +51,12 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* ÁREAS DE TOQUE PRINCIPAIS (80% DA TELA) */}
+      {/* ÁREAS DE TOQUE PRINCIPAIS */}
       <main className="flex-1 flex relative">
-        
-        {/* COLUNA ESQUERDA - TIME A */}
         <div 
           onClick={() => addPoint('p1')}
           className={`flex-1 flex flex-col items-center justify-center relative tap-feedback transition-colors duration-300 ${gameState.currentServer === 'p1' ? 'bg-beach-accent/5' : ''}`}
         >
-          {/* Indicador de Saque Lateral */}
           {gameState.currentServer === 'p1' && !gameState.winner && (
             <div className="absolute left-0 top-1/4 bottom-1/4 w-1.5 bg-beach-accent rounded-r-full shadow-[0_0_15px_#22C55E]" />
           )}
@@ -90,9 +86,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* DIVISOR CENTRAL */}
         <div className="w-px bg-white/5 relative">
-          {/* Overlay de Ponto Decisivo */}
           {isDecidingPoint && (
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
               <div className="bg-red-600 text-white px-3 py-1 rounded-lg font-black text-[9px] whitespace-nowrap shadow-2xl border border-white/20 animate-pulse flex items-center gap-1">
@@ -102,12 +96,10 @@ const App: React.FC = () => {
           )}
         </div>
 
-        {/* COLUNA DIREITA - TIME B */}
         <div 
           onClick={() => addPoint('p2')}
           className={`flex-1 flex flex-col items-center justify-center relative tap-feedback transition-colors duration-300 ${gameState.currentServer === 'p2' ? 'bg-beach-accent/5' : ''}`}
         >
-          {/* Indicador de Saque Lateral */}
           {gameState.currentServer === 'p2' && !gameState.winner && (
             <div className="absolute right-0 top-1/4 bottom-1/4 w-1.5 bg-beach-accent rounded-l-full shadow-[0_0_15px_#22C55E]" />
           )}
@@ -138,7 +130,7 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* BARRA DE CONTROLE INFERIOR (ERGONOMIA TOTAL) */}
+      {/* FOOTER */}
       <footer className="h-28 bg-black/60 backdrop-blur-2xl border-t border-white/5 flex items-center justify-between px-6 pb-6">
         <div className="flex gap-4">
           <button 
@@ -166,18 +158,48 @@ const App: React.FC = () => {
         </button>
       </footer>
 
-      {/* OVERLAY DE TROCA DE LADO */}
+      {/* OVERLAY DE TROCA DE LADO REVISADO (ALTO CONTRASTE) */}
       {showChangeSidesAlert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-beach-yellow p-8 animate-in fade-in zoom-in duration-300">
-          <div className="text-center">
-            <ArrowLeftRight size={80} className="text-beach-navy mx-auto mb-6 animate-bounce" />
-            <h2 className="text-4xl font-black text-beach-navy leading-none mb-2">TROCA DE LADO</h2>
-            <p className="text-beach-navy/60 font-bold uppercase tracking-widest text-sm">Fim do game ímpar: {totalGames}</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden">
+          {/* Lâminas de Fundo com Gradiente */}
+          <div className="absolute inset-0 flex">
+            <div className="h-full w-2/3 bg-gradient-to-br from-beach-yellow to-yellow-600 animate-slide-left -ml-10 shadow-[20px_0_50px_rgba(0,0,0,0.3)]" />
+            <div className="h-full w-2/3 bg-gradient-to-bl from-beach-orange to-orange-700 animate-slide-right -mr-10 shadow-[-20px_0_50px_rgba(0,0,0,0.3)]" />
           </div>
+
+          {/* Faixa Central de Contraste (Black Glass) */}
+          <div className="absolute left-0 right-0 h-48 bg-black/40 backdrop-blur-md z-10 animate-bar-reveal" />
+
+          {/* Conteúdo Central */}
+          <div className="relative z-20 text-center flex flex-col items-center">
+            {/* Ícone com Container de Alto Contraste */}
+            <div className="bg-beach-navy p-7 rounded-[2.5rem] shadow-2xl border-4 border-white animate-swap-icon">
+              <ArrowLeftRight size={64} className="text-white" />
+            </div>
+            
+            <div className="mt-6 animate-text-pop">
+              <h2 className="text-6xl font-black text-white leading-none mb-3 text-shadow-glow uppercase italic">
+                Troca de <span className="text-beach-yellow">Lado</span>
+              </h2>
+              <div className="flex items-center justify-center gap-4">
+                <div className="h-px w-8 bg-white/30" />
+                <span className="text-white font-black uppercase tracking-[0.3em] text-sm">Game Finalizado: {totalGames}</span>
+                <div className="h-px w-8 bg-white/30" />
+              </div>
+            </div>
+
+            {/* Barra de Progresso Visível */}
+            <div className="absolute bottom-[-140px] left-1/2 -translate-x-1/2 w-64 h-2 bg-black/30 rounded-full overflow-hidden border border-white/10">
+              <div className="h-full bg-white animate-timer shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+            </div>
+          </div>
+
+          {/* Vinheta de Escurecimento Lateral */}
+          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,transparent_40%,rgba(0,0,0,0.4)_100%)]" />
         </div>
       )}
 
-      {/* MODAL DE CONFIGURAÇÃO - Estilo Bottom Sheet para Mobile */}
+      {/* MODAL DE CONFIGURAÇÃO */}
       {isConfigOpen && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-end justify-center animate-in fade-in duration-200">
           <div className="w-full bg-beach-slate rounded-t-[3rem] border-t border-white/10 p-8 pb-12 animate-in slide-in-from-bottom duration-300">
@@ -224,7 +246,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* OVERLAY DE VITÓRIA - IMPACTO TOTAL */}
+      {/* OVERLAY DE VITÓRIA */}
       {gameState.winner && (
         <div className="fixed inset-0 bg-beach-navy z-[200] flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in duration-500">
           <div className="mb-10 relative">
