@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useBeachTennisGame } from './hooks/useBeachTennisGame';
-import { RotateCcw, Undo2, Trophy, ArrowLeftRight, Zap, Settings2, X, ChevronRight, Activity } from 'lucide-react';
+import { RotateCcw, Undo2, Trophy, ArrowLeftRight, Zap, Settings2, X, ChevronRight, Activity, Users } from 'lucide-react';
 
 const App: React.FC = () => {
   const { gameState, addPoint, undo, resetMatch } = useBeachTennisGame();
@@ -14,6 +14,23 @@ const App: React.FC = () => {
   const isChangeEnds = totalGames % 2 !== 0 && !gameState.isTieBreak && gameState.p1Score === '0' && gameState.p2Score === '0' && totalGames > 0;
   const isDecidingPoint = gameState.p1Score === '40' && gameState.p2Score === '40' && !gameState.isTieBreak;
 
+  const triggerHaptic = useCallback(() => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(40);
+    }
+  }, []);
+
+  const handleAddPoint = (player: 'p1' | 'p2') => {
+    triggerHaptic();
+    addPoint(player);
+  };
+
+  const handleUndo = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    triggerHaptic();
+    undo();
+  };
+
   useEffect(() => {
     if (isChangeEnds) {
       setShowChangeSidesAlert(true);
@@ -23,11 +40,11 @@ const App: React.FC = () => {
   }, [isChangeEnds]);
 
   return (
-    <div className="h-screen w-full bg-beach-navy flex flex-col font-sans select-none relative overflow-hidden">
+    <div className="h-[100dvh] w-full bg-beach-navy flex flex-col font-sans select-none relative overflow-hidden">
       
-      {/* HEADER COMPACTO */}
+      {/* HEADER ADAPTADO PARA NOTCH */}
       <header className="safe-top bg-black/40 backdrop-blur-xl border-b border-white/5 px-5 py-3 flex items-center justify-between z-30">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pt-1 md:pt-0">
           <div className="w-8 h-8 bg-beach-yellow rounded-lg flex items-center justify-center shadow-lg shadow-beach-yellow/10">
             <Trophy size={16} className="text-beach-navy" />
           </div>
@@ -35,7 +52,7 @@ const App: React.FC = () => {
             <h1 className="text-[10px] font-black tracking-widest text-white/50 uppercase">Beach Placar <span className="text-beach-yellow">Pro</span></h1>
             <div className="flex items-center gap-1">
               <Activity size={8} className="text-beach-accent" />
-              <span className="text-[9px] font-bold text-beach-accent/80 uppercase">Match in Progress</span>
+              <span className="text-[9px] font-bold text-beach-accent/80 uppercase">Ao Vivo</span>
             </div>
           </div>
         </div>
@@ -54,7 +71,7 @@ const App: React.FC = () => {
       {/* ÁREAS DE TOQUE PRINCIPAIS */}
       <main className="flex-1 flex relative">
         <div 
-          onClick={() => addPoint('p1')}
+          onClick={() => handleAddPoint('p1')}
           className={`flex-1 flex flex-col items-center justify-center relative tap-feedback transition-colors duration-300 ${gameState.currentServer === 'p1' ? 'bg-beach-accent/5' : ''}`}
         >
           {gameState.currentServer === 'p1' && !gameState.winner && (
@@ -97,7 +114,7 @@ const App: React.FC = () => {
         </div>
 
         <div 
-          onClick={() => addPoint('p2')}
+          onClick={() => handleAddPoint('p2')}
           className={`flex-1 flex flex-col items-center justify-center relative tap-feedback transition-colors duration-300 ${gameState.currentServer === 'p2' ? 'bg-beach-accent/5' : ''}`}
         >
           {gameState.currentServer === 'p2' && !gameState.winner && (
@@ -130,11 +147,11 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* FOOTER */}
-      <footer className="h-28 bg-black/60 backdrop-blur-2xl border-t border-white/5 flex items-center justify-between px-6 pb-6">
+      {/* FOOTER COM SAFE AREA BOTTOM */}
+      <footer className="h-auto bg-black/60 backdrop-blur-2xl border-t border-white/5 flex items-center justify-between px-6 py-4 safe-bottom">
         <div className="flex gap-4">
           <button 
-            onClick={(e) => { e.stopPropagation(); undo(); }}
+            onClick={handleUndo}
             disabled={gameState.history.length === 0}
             className="h-14 px-6 bg-white/5 disabled:opacity-10 rounded-2xl border border-white/10 flex items-center gap-3 active:scale-90 transition-all"
           >
@@ -143,7 +160,7 @@ const App: React.FC = () => {
           </button>
 
           <button 
-            onClick={(e) => { e.stopPropagation(); if(confirm("Zerar partida?")) resetMatch(); }}
+            onClick={(e) => { e.stopPropagation(); triggerHaptic(); if(confirm("Zerar partida?")) resetMatch(); }}
             className="h-14 w-14 bg-red-900/20 rounded-2xl border border-red-500/10 flex items-center justify-center active:scale-90 transition-all"
           >
             <RotateCcw size={22} className="text-red-500" />
@@ -151,32 +168,25 @@ const App: React.FC = () => {
         </div>
 
         <button 
-          onClick={(e) => { e.stopPropagation(); setIsConfigOpen(true); }}
+          onClick={(e) => { e.stopPropagation(); triggerHaptic(); setIsConfigOpen(true); }}
           className="h-14 w-14 bg-beach-yellow text-beach-navy rounded-2xl flex items-center justify-center shadow-lg shadow-beach-yellow/20 active:scale-90 transition-all"
         >
           <Settings2 size={24} />
         </button>
       </footer>
 
-      {/* OVERLAY DE TROCA DE LADO REVISADO (ALTO CONTRASTE) */}
+      {/* OVERLAY DE TROCA DE LADO */}
       {showChangeSidesAlert && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden">
-          {/* Lâminas de Fundo com Gradiente */}
           <div className="absolute inset-0 flex">
             <div className="h-full w-2/3 bg-gradient-to-br from-beach-yellow to-yellow-600 animate-slide-left -ml-10 shadow-[20px_0_50px_rgba(0,0,0,0.3)]" />
             <div className="h-full w-2/3 bg-gradient-to-bl from-beach-orange to-orange-700 animate-slide-right -mr-10 shadow-[-20px_0_50px_rgba(0,0,0,0.3)]" />
           </div>
-
-          {/* Faixa Central de Contraste (Black Glass) */}
           <div className="absolute left-0 right-0 h-48 bg-black/40 backdrop-blur-md z-10 animate-bar-reveal" />
-
-          {/* Conteúdo Central */}
           <div className="relative z-20 text-center flex flex-col items-center">
-            {/* Ícone com Container de Alto Contraste */}
             <div className="bg-beach-navy p-7 rounded-[2.5rem] shadow-2xl border-4 border-white animate-swap-icon">
               <ArrowLeftRight size={64} className="text-white" />
             </div>
-            
             <div className="mt-6 animate-text-pop">
               <h2 className="text-6xl font-black text-white leading-none mb-3 text-shadow-glow uppercase italic">
                 Troca de <span className="text-beach-yellow">Lado</span>
@@ -187,60 +197,66 @@ const App: React.FC = () => {
                 <div className="h-px w-8 bg-white/30" />
               </div>
             </div>
-
-            {/* Barra de Progresso Visível */}
             <div className="absolute bottom-[-140px] left-1/2 -translate-x-1/2 w-64 h-2 bg-black/30 rounded-full overflow-hidden border border-white/10">
               <div className="h-full bg-white animate-timer shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
             </div>
           </div>
-
-          {/* Vinheta de Escurecimento Lateral */}
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,transparent_40%,rgba(0,0,0,0.4)_100%)]" />
         </div>
       )}
 
-      {/* MODAL DE CONFIGURAÇÃO */}
+      {/* MODAL DE CONFIGURAÇÃO FLUÍDO */}
       {isConfigOpen && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-end justify-center animate-in fade-in duration-200">
-          <div className="w-full bg-beach-slate rounded-t-[3rem] border-t border-white/10 p-8 pb-12 animate-in slide-in-from-bottom duration-300">
-            <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8" />
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-[2px] z-[100] flex items-end justify-center animate-fade-in">
+          <div className="w-full bg-beach-slate rounded-t-[3.5rem] border-t border-white/20 p-8 safe-bottom shadow-[0_-20px_60px_rgba(0,0,0,0.6)] animate-sheet-up">
+            {/* Drag Handle */}
+            <div className="w-16 h-1.5 bg-white/20 rounded-full mx-auto mb-10 shadow-inner" />
             
             <div className="flex justify-between items-center mb-10">
-              <h3 className="text-2xl font-black tracking-tight">Equipes</h3>
-              <button onClick={() => setIsConfigOpen(false)} className="p-3 bg-white/5 rounded-full">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-beach-yellow rounded-2xl">
+                  <Users className="text-beach-navy" size={24} />
+                </div>
+                <h3 className="text-2xl font-black tracking-tight text-white uppercase italic">Configurar Equipes</h3>
+              </div>
+              <button onClick={() => setIsConfigOpen(false)} className="p-3 bg-white/5 rounded-full hover:bg-white/10 active:scale-90 transition-all">
                 <X size={24} />
               </button>
             </div>
-            
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-beach-yellow uppercase tracking-widest">Nome Equipe A</label>
+
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-beach-yellow uppercase tracking-[0.3em] px-1 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-beach-yellow" /> Equipe A
+                </label>
                 <input 
                   type="text"
                   value={p1Name}
                   onChange={(e) => setP1Name(e.target.value.toUpperCase())}
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-xl font-black text-white focus:border-beach-yellow focus:outline-none"
-                  placeholder="EQUIPE A"
+                  className="w-full bg-black/40 border-2 border-white/5 rounded-[2rem] px-8 py-6 text-2xl font-black text-white focus:border-beach-yellow focus:bg-black/60 focus:outline-none transition-all placeholder:text-white/10"
+                  placeholder="DIGITE O NOME..."
                 />
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-beach-orange uppercase tracking-widest">Nome Equipe B</label>
+
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-beach-orange uppercase tracking-[0.3em] px-1 flex items-center gap-2">
+                   <span className="w-2 h-2 rounded-full bg-beach-orange" /> Equipe B
+                </label>
                 <input 
                   type="text"
                   value={p2Name}
                   onChange={(e) => setP2Name(e.target.value.toUpperCase())}
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-xl font-black text-white focus:border-beach-orange focus:outline-none"
-                  placeholder="EQUIPE B"
+                  className="w-full bg-black/40 border-2 border-white/5 rounded-[2rem] px-8 py-6 text-2xl font-black text-white focus:border-beach-orange focus:bg-black/60 focus:outline-none transition-all placeholder:text-white/10"
+                  placeholder="DIGITE O NOME..."
                 />
               </div>
             </div>
 
             <button 
-              onClick={() => setIsConfigOpen(false)}
-              className="w-full mt-10 bg-beach-yellow text-beach-navy py-6 rounded-2xl font-black text-lg shadow-xl"
+              onClick={() => { triggerHaptic(); setIsConfigOpen(false); }}
+              className="w-full mt-12 bg-beach-yellow text-beach-navy py-7 rounded-[2.5rem] font-black text-xl shadow-[0_15px_30px_rgba(253,224,71,0.2)] active:scale-[0.97] active:brightness-90 transition-all uppercase tracking-widest"
             >
-              SALVAR E CONTINUAR
+              Confirmar Alterações
             </button>
           </div>
         </div>
@@ -248,17 +264,15 @@ const App: React.FC = () => {
 
       {/* OVERLAY DE VITÓRIA */}
       {gameState.winner && (
-        <div className="fixed inset-0 bg-beach-navy z-[200] flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in duration-500">
+        <div className="fixed inset-0 bg-beach-navy z-[200] flex flex-col items-center justify-center p-8 safe-top safe-bottom animate-in fade-in zoom-in duration-500">
           <div className="mb-10 relative">
             <div className="absolute inset-0 bg-beach-yellow/30 blur-3xl animate-pulse rounded-full" />
             <Trophy size={100} className="text-beach-yellow relative z-10" />
           </div>
-          
           <h2 className="text-xs font-black text-beach-yellow uppercase tracking-[0.4em] mb-2">Match Point Final</h2>
-          <h3 className="text-5xl font-display font-black text-center leading-none mb-10">
+          <h3 className="text-5xl font-display font-black text-center leading-none mb-10 uppercase italic text-white">
             {gameState.winner === 'p1' ? p1Name : p2Name} <br/> <span className="text-beach-accent">VENCEU!</span>
           </h3>
-
           <div className="flex gap-4 mb-16">
             {gameState.setResults.map((r, i) => (
               <div key={i} className="bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-center">
@@ -269,9 +283,8 @@ const App: React.FC = () => {
               </div>
             ))}
           </div>
-
           <button 
-            onClick={resetMatch} 
+            onClick={() => { triggerHaptic(); resetMatch(); }} 
             className="w-full max-w-xs bg-white text-beach-navy py-6 rounded-3xl font-black text-xl shadow-2xl active:scale-95 transition-all"
           >
             NOVA PARTIDA

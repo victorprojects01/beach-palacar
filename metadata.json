@@ -1,5 +1,5 @@
 {
-  "name": "Beach Placar CBT",
-  "description": "Marcador profissional de Beach Tennis seguindo as regras oficiais da CBT (No-Ad, Tie-break, Troca de Lados).",
+  "name": "Beach Placar Pro",
+  "description": "Marcador profissional de Beach Tennis seguindo as regras oficiais (No-Ad, Tie-break, Troca de Lados). Versão otimizada para App Stores.",
   "requestFramePermissions": []
 }
